@@ -23,38 +23,59 @@ The foundation of the **Segudatos Flow** frontend has been successfully initiali
   - "Continue with Google" OAuth button.
   - Customized theming matching the company’s blue accents (`#0066FF`), gray scales (`var(--gray-*)`), and subtle border radii.
 
+### 3. Routing & Authentication Hardening (Phase 1)
+- **Protected Routing**: Implemented `react-router-dom` to handle nested routes. Created a `ProtectedLayout` that wraps the application and enforces authentication.
+- **Profile Validation**: Validates user profiles via context (`ProfileContext.tsx`). If the authenticated user does not exist in the `profiles` table (or is inactive), they are redirected to a dedicated "Access Denied" screen (`AccessDenied.tsx`).
+- **Global Layout**: Developed the global shell of the app `DashboardLayout.tsx` (Sidebar with navigation, Top header with user profile dropdown).
+
+### 3. Core Admin Modules (Completed Phase 2)
+- **User Management**: 
+  - Real-time search and filtering (Role, Status).
+  - Inline Edit Mode for batch operations.
+  - Multi-selection support to apply changes to multiple users at once.
+  - Dirty-state visual indicators (amber indicators) and single-save workflow.
+  - **Batch Add (Carga Masiva)**: Direct paste from Excel/Sheets with real-time preview and validation.
+- **Lookup Values Management**: 
+  - Category-based sidebar navigation.
+  - Inline Edit Mode for system lists (labels, sort order, status, activity).
+  - Suggestion review workflow (Approve/Reject suggestions from field staff).
+  - **Batch Add (Carga Masiva)**: Category-aware batch import from spreadsheet data.
+
+---
+
+## Design Patterns & UI Guidelines
+
+To maintain consistency across the application, follow these established patterns:
+
+### 1. Modals & Overlays
+- **Dismissal**: All modals must close when clicking the backdrop (outside click) or pressing the `Esc` key (handled by backdrop `onClick` and `stopPropagation` on content).
+- **Animation**: Use `animate-in fade-in zoom-in-95 duration-200` for smooth entry.
+- **Blur**: Apply `backdrop-blur-sm` to the fixed overlay.
+
+### 2. High-Density Data Grids (TanStack Table)
+- **Inline Editing**: Prefer inline "Edit Mode" over per-row modals for administrative tasks.
+- **Batch Actions**: Enable checkboxes and batch selection whenever multiple records might need identical updates.
+- **Visual Feedback**: Use a `border-l-4 border-amber-400` indicator on rows with unsaved changes.
+- **Sticky Headers**: Keep table headers visible during scroll using `sticky top-0`.
+
 ---
 
 ## Proposed Phases for the Future
 
-Based on the architectural backend design and the required operational flow, the following phases are proposed to complete the application.
-
-### Phase 1: Routing & Authentication Hardening
-- **Protected Routing**: Implement `react-router-dom` to handle nested routes. Create a `ProtectedLayout` that wraps the application.
-- **Profile Validation**: Upon login, query the `profiles` table. If the authenticated user does not exist in the `profiles` table (or is inactive), redirect them to an "Access Denied / Contact Admin" screen.
-- **Global Layout**: Develop the global shell of the app (Sidebar with navigation, Top header with user profile dropdown).
-
-### Phase 2: Core Admin Modules
-_Before operational data can be handled, the system needs users and reference data._
-- **Lookup Values Management**: Build the admin interface to manage system dropdowns (`lookup_values` table). This is the foundation for all forms (ticket types, statuses, priorities, etc.).
-- **User Management**: Build the admin module to create new profiles, assign roles (admin, supervisor, member), and manage activity status.
-
-### Phase 3: Contracts & Views Configuration
-- **Contracts Module**: Interface to list, create, and edit contracts.
-- **Contract Supervisors**: Allow admins to assign supervisors to specific contracts.
-- **Contract Views Configuration**: Admin interface to configure `contract_views` (defining which columns and default filters are visible for each contract).
+### Phase 3: Contracts & Views Configuration (Next Step)
+_Defining the data structures that drive the operational grids._
+- **Contracts Module**: Interface to list, create, and edit operational contracts.
+- **Contract Supervisors**: logic to link specific users (supervisors) to specific contracts.
+- **Contract Views Configuration**: The "Secret Sauce" — an admin interface to define which columns from the DB are visible for a specific contract, their order, and default filters. This configuration will drive the dynamic tables in Phase 4.
 
 ### Phase 4: Core Operations (Tickets)
-- **Tickets Table**: Implement `TanStack Table` for the core ticket grid. It must be dynamic, reading its columns and filters from the `contract_views` configuration.
-- **Ticket Detail Panel**: A comprehensive view/slide-over containing all ticket fields, linked files, system impacts, and links to parent/child tickets.
-- **Saved Views**: Allow supervisors to save customized grid layouts and filters (soft views) as tabs within their workspace.
+- **Dynamic Tickets Table**: A grid that builds itself based on the `contract_views` configuration.
+- **Detail Slide-over**: A comprehensive view for ticket management, file attachments, and history.
 
 ### Phase 5: Planning & Execution
-- **Assignments (Planning)**: Interface within the ticket to plan visits (date ranges, assigned personnel). Needs clash detection via pre-save queries.
-- **Worklogs (Execution)**: Interface to review mobile app entries or manually insert worklogs (with anomaly flag detection handled by the DB).
+- **Assignments**: Visit planning with clash detection.
+- **Worklogs**: Field entry review and manual insertion.
 
 ### Phase 6: Settlements & Dashboards
-- **Settlement Workflow**: Interface for coordinators to flag tickets as ready for settlement, and for admins to confirm settlement runs (updating `settled_at` timestamps).
-- **"My Work" Dashboard**: A personalized view for the logged-in user across all assigned contracts.
-- **Global Dashboard**: Real-time summary charts and KPIs using Supabase Realtime for admins and owners.
-- **Client & Contact Management**: Build the interface for managing clients, their regions, and contact persons.
+- **Settlement Workflow**: Finalizing tickets for billing runs.
+- **KPI Dashboards**: Real-time summaries for coordinators and owners.
